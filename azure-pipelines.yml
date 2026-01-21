@@ -1,0 +1,63 @@
+trigger:
+- main
+
+variables:
+  pythonVersion: '3.11'
+  azureSubscription: ''
+  functionAppName: ''
+  functionAppPackage: '$(Build.ArtifactStagingDirectory)/webhook_bridge.zip'
+
+stages:
+- stage: Build
+  displayName: Build and Test
+  jobs:
+  - job: Test
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '$(pythonVersion)'
+      displayName: Use Python
+
+    - script: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt -r requirements-dev.txt
+      displayName: Install dependencies
+
+    - script: pytest
+      displayName: Run tests
+
+    - task: ArchiveFiles@2
+      inputs:
+        rootFolderOrFile: 'webhook_bridge'
+        includeRootFolder: false
+        archiveType: 'zip'
+        archiveFile: '$(functionAppPackage)'
+        replaceExistingArchive: true
+      displayName: Package webhook bridge
+
+    - publish: '$(functionAppPackage)'
+      artifact: webhook_bridge
+      displayName: Publish webhook bridge artifact
+
+- stage: Deploy
+  displayName: Deploy Webhook Bridge
+  dependsOn: Build
+  condition: and(succeeded(), ne(variables['azureSubscription'], ''), ne(variables['functionAppName'], ''))
+  jobs:
+  - job: Deploy
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - download: current
+      artifact: webhook_bridge
+      displayName: Download artifact
+
+    - task: AzureFunctionApp@2
+      inputs:
+        azureSubscription: '$(azureSubscription)'
+        appType: 'functionAppLinux'
+        appName: '$(functionAppName)'
+        package: '$(Pipeline.Workspace)/webhook_bridge/webhook_bridge.zip'
+      displayName: Deploy Azure Function

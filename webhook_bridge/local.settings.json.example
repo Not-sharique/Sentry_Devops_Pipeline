@@ -1,0 +1,17 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "python",
+    "SENTRY_WEBHOOK_SECRET": "set-me",
+    "SENTRY_TITLE_PREFIX": "Sentry",
+    "ADO_BASE_URL": "https://dev.azure.com",
+    "ADO_ORG": "your-org",
+    "ADO_PROJECT": "your-project",
+    "ADO_PAT": "your-pat",
+    "ADO_WORK_ITEM_TYPE": "Issue",
+    "ADO_AREA_PATH": "",
+    "ADO_ITERATION_PATH": "",
+    "ADO_TAGS": "Sentry;Webhook"
+  }
+}
